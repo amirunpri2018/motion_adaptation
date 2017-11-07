@@ -27,7 +27,7 @@
 
 "resize_mode_val": "",
 "augmentors_val": [],
-"n_test_samples": 1,
+"n_test_samples": 10,
 
 "n_adaptation_steps": 15,
 "adaptation_interval": 5,

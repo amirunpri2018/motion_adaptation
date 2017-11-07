@@ -12,14 +12,29 @@ def zero_label(img_path, label_path):
   res = {"label": label}
   return res
 
+def read_image_and_annotation_list(fn, data_dir):
+  imgs = []
+  ans = []
+  with open(fn) as f:
+    for l in f:
+      sp = l.split()
+      an = data_dir + sp[1]
+      im = data_dir + sp[0]
+      imgs.append(im)
+      ans.append(an)
+  return imgs, ans
+
 
 class CustomDataset(ImageDataset):
   def __init__(self, config, subset, coord, fraction=1.0):
     super(CustomDataset, self).__init__("custom", "", 2, config, subset, coord, None, 255, fraction,
                                         label_load_fn=zero_label)
-    self.file_list = config.unicode("file_list")
+#    self.file_list = config.unicode("file_list")
 
   def read_inputfile_lists(self):
-    imgs = [x.strip() for x in open(self.file_list).readlines()]
-    labels = ["" for _ in imgs]
-    return [imgs, labels]
+     list_file= '/home/eren/Work/motion_adaptation/datasets/Custom/training.txt'
+     imgs, ans= read_image_and_annotation_list(self.data_dir+list_file, self.data_dir)
+     return imgs, ans
+#    imgs = [x.strip() for x in open(self.file_list).readlines()]
+#    labels = ["" for _ in imgs]
+#    return [imgs, labels]
