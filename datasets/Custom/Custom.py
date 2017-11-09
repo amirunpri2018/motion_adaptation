@@ -24,7 +24,7 @@ def read_image_and_annotation_list(fn, data_dir):
       ans.append(an)
   return imgs, ans
 
-KITTI_IMAGE_SIZE= (512, 1024)
+KITTI_IMAGE_SIZE= (375, 1242)
 NUM_CLASSES = 2
 VOID_LABEL = 255  # for translation augmentation
 

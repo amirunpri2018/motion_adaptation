@@ -9,7 +9,7 @@ from datasets.Util.Input import assemble_input_tensors
 from datasets.Util.Normalization import unnormalize
 from datasets.Util.Reader import create_tensor_dict
 from datasets.Util.Resize import resize
-
+import pdb
 
 class FeedImageDataset(Dataset):
   def __init__(self, config, num_classes, void_label, subset, image_size, n_color_channels=3, use_old_label=False,
@@ -50,7 +50,6 @@ class FeedImageDataset(Dataset):
     tensors = create_tensor_dict(unnormalized_img=img, label=label, tag=tag, old_label=old_label,
                                  flow_past=flow_past,flow_future=flow_future,
                                  u0=u0, u1=u1)
-
     self.feed_dict = {self.img_placeholder: tensors["unnormalized_img"],
                       self.label_placeholder: tensors["label"],
                       self.tag_placeholder: tensors["tag"]}

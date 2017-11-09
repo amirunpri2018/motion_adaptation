@@ -1,5 +1,6 @@
 from DAVIS.DAVIS import DAVISDataset, DAVIS2017Dataset
 from datasets.Custom.Custom import CustomDataset
+from datasets.Custom.Custom_oneshot import CustomOneshotDataset
 from datasets.DAVIS.DAVIS2017_oneshot import Davis2017OneshotDataset
 from datasets.DAVIS.DAVIS_oneshot import DavisOneshotDataset
 from datasets.PascalVOC.PascalVOC_instance import PascalVOCInstanceDataset
@@ -24,6 +25,8 @@ def load_dataset(config, subset, session, coordinator):
       return YoutubeObjectsFullOneshotDataset(config, subset)
     elif name == "segtrackv2":
       return Segtrackv2OneshotDataset(config, subset)
+    elif name == "custom":
+      return CustomOneshotDataset(config, subset)
     else:
       assert False, "Unknown dataset for oneshot: " + name
 
