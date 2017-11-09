@@ -24,11 +24,17 @@ def read_image_and_annotation_list(fn, data_dir):
       ans.append(an)
   return imgs, ans
 
+KITTI_IMAGE_SIZE= (512, 1024)
+NUM_CLASSES = 2
+VOID_LABEL = 255  # for translation augmentation
 
 class CustomDataset(ImageDataset):
   def __init__(self, config, subset, coord, fraction=1.0):
-    super(CustomDataset, self).__init__("custom", "", 2, config, subset, coord, None, 255, fraction,
-                                        label_load_fn=zero_label)
+#    super(CustomDataset, self).__init__("custom", "", 2, config, subset, coord, None, 255, fraction,
+#                                        label_load_fn=zero_label)
+    super(CustomDataset, self).__init__("kitti", "", NUM_CLASSES, config, subset, coord,
+                                            KITTI_IMAGE_SIZE, VOID_LABEL, fraction, lambda x: x / 255, ignore_classes=[VOID_LABEL])
+
 #    self.file_list = config.unicode("file_list")
 
   def read_inputfile_lists(self):
