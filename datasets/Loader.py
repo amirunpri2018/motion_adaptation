@@ -23,7 +23,7 @@ def load_dataset(config, subset, session, coordinator):
     elif name in ("youtubefull", "youtubeobjectsfull"):
       return YoutubeObjectsFullOneshotDataset(config, subset)
     elif name == "segtrackv2":
-      return Segtrackv2OneshotDataset(config, subset)
+      return Segtrackv2OneshotDataset(config, subset, use_old_label=False)
     else:
       assert False, "Unknown dataset for oneshot: " + name
 

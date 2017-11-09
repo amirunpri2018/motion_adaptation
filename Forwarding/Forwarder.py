@@ -3,11 +3,12 @@ from abc import ABCMeta, abstractmethod
 from scipy.misc import imsave
 import numpy
 import tensorflow as tf
+import scipy
 
 from Log import log
 from Measures import compute_iou_for_binary_segmentation, compute_measures_for_binary_segmentation, average_measures
 from datasets.Util.pascal_colormap import save_with_pascal_colormap
-
+import pdb
 
 def merge_multi_samples(ys, idx_imgs, target, verbose=True):
   if target.ndim == 4:
@@ -132,7 +133,8 @@ class ImageForwarder(BasicForwarder):
         save_with_pascal_colormap(out_fn, y_argmax)
       else:
         y_scaled = (y_argmax * 255).astype("uint8")
-        imsave(out_fn, numpy.squeeze(y_scaled, axis=2))
+        out_fn= out_fn.split('.')[0]+'.png'
+        scipy.misc.imsave(out_fn, numpy.squeeze(y_scaled, axis=2))
       print out_fn
     if logit is not None:
       out_fn_logits = out_fn.replace(".png", ".pickle")
