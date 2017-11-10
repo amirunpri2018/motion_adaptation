@@ -4,7 +4,7 @@
 
 "model": "DAVIS16_oneshot",
 "task": "oneshot",
-"dataset": "segtrackv2",
+"dataset": "DAVIS",
 "batch_size": 1,
 "batch_size_eval": 1,
 "log_verbosity": 5,
@@ -26,7 +26,7 @@
 "augmentors_train": ["gamma", "flip"],
 "resize_mode_train": "",
 
-"resize_mode_val": "",
+"resize_mode_val": "fixed_size",
 "augmentors_val": ["gamma", "flip"],
 "n_test_samples": 10,
 
