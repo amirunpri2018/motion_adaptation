@@ -10,7 +10,7 @@ from datasets.DAVIS.DAVIS import NUM_CLASSES, VOID_LABEL, DAVIS_DEFAULT_PATH, DA
 from datasets.FeedDataset import OneshotImageDataset
 from datasets.Util.Util import unique_list, load_flow_from_flo
 from datasets.Util.Reader import create_tensor_dict
-
+import pdb
 
 def _load_flow(flow_dir, img_fn, future, flow_as_angle):
   if future:
@@ -55,6 +55,8 @@ def _load_frame(idx, im, an, imgs, flow_dir, flow_into_past, flow_into_future, f
                                        flow_as_angle)
 
   an_raw = scipy.ndimage.imread(an)
+  if len(an_raw.shape)==3:
+      an_raw= an_raw[:,:,0]
   if "adaptation" in an.split("/")[-1]:
     an_postproc = an_raw
     an_postproc[an_raw == 128] = 1

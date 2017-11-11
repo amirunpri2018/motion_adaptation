@@ -1,6 +1,6 @@
 {
 #TODO: change this!
-"davis_data_dir": "/home/eren/Data/DAVIS/",
+"davis_data_dir": "/home/eren/Data/SegTrackv2/",
 
 "model": "DAVIS16_online",
 "task": "online",
@@ -23,9 +23,9 @@
 "save_logits": true,
 
 "augmentors_train": [],
-"resize_mode_train": "",
+"resize_mode_train": "fixed_size",
 
-"resize_mode_val": "",
+"resize_mode_val": "fixed_size",
 "augmentors_val": [],
 "n_test_samples": 10,
 
