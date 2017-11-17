@@ -35,7 +35,7 @@
 "posterior_positive_threshold": 0.8,
 "distance_negative_threshold": 220.0,
 "adaptation_loss_scale": 0.05,
-"adaptation_erosion_size": 15,
+"adaptation_erosion_size": 1,
 
 "adapt_debug": true,
 

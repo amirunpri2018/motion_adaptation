@@ -9,7 +9,7 @@ import scipy.misc
 import numpy as np
 import cv2
 VOID_LABEL = 255
-
+import pdb
 
 class OnlineAdaptingForwarder(OneshotForwarder):
   def __init__(self, engine):
@@ -26,7 +26,7 @@ class OnlineAdaptingForwarder(OneshotForwarder):
     self.use_negatives = self.config.bool("use_negatives", True)
     self.mot_dir= '/home/eren/Data/SegTrackv2/MS/'
     self.short_dir= '/home/eren/Data/SegTrackv2/MS/'
-    self.long_dir= '/home/eren/Data/DAVIS/ARP/'
+    self.long_dir= '/home/eren/Data/SegTrackv2/MS/'
     self.correct_th= 0.3
     self.neg_th = 0.8
 
@@ -56,7 +56,8 @@ class OnlineAdaptingForwarder(OneshotForwarder):
       print('Motion Type of this Sequence is ', motype)
 
 #      masks= np.load(self.mot_dir+dirs[video_idx]+'/mask_'+dirs[video_idx]+'.npy')
-#      indices= np.load(self.mot_dir+dirs[video_idx]+'/indices.npy')
+      indices= np.load(self.long_dir+vtag+'/indices.npy')
+      files= sorted(os.listdir(self.long_dir+vtag+'/masks/'))
 
       for t in xrange(0, n_frames):
           def get_posteriors():
@@ -66,15 +67,16 @@ class OnlineAdaptingForwarder(OneshotForwarder):
               return logits_val_[0]
 
           if motype=='static':
-              temp= cv2.imread(self.long_dir+vtag+('/%05d.png'%t), 0)
-              temp= (temp- temp.min())*1.0/ (temp.max()-temp.min())
-              last_mask= np.zeros((temp.shape[0], temp.shape[1]), dtype=np.uint8)
-              last_mask[temp>0.5]=1
-              last_mask= np.expand_dims(last_mask, axis=2)
-              self.distance_negative_threshold= 10
-              if adapt_flag:
-                  negatives = self._adapt(video_idx, t, last_mask, get_posteriors, adapt_flag=1)
-     #             adapt_flag= False
+              if t < len(files) and (t in indices):
+                  temp= cv2.imread(self.long_dir+vtag+'/masks/'+files[t], 0)
+                  temp= (temp- temp.min())*1.0/ (temp.max()-temp.min())
+                  last_mask= np.zeros((temp.shape[0], temp.shape[1]), dtype=np.uint8)
+                  last_mask[temp>0.5]=1
+                  last_mask= np.expand_dims(last_mask, axis=2)
+                  self.distance_negative_threshold= 50
+                  if adapt_flag:
+                      negatives = self._adapt(video_idx, t, last_mask, get_posteriors, adapt_flag=1)
+                      adapt_flag= False
               n, measures, ys_argmax_val, posteriors_val, targets_val = self._process_forward_minibatch(
                   data, network, save_logits, self.save_oneshot, targets, ys, start_frame_idx=t)
               assert n == 1
