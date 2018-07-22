@@ -7,6 +7,7 @@ from Config import Config
 from Log import log
 import tensorflow as tf
 
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
 def init_log(config):
   log_dir = config.dir("log_dir", "logs")

@@ -69,6 +69,7 @@ def random_crop_image(img, size, offset=None):
 def random_crop_tensors(tensors, size):
   tensors_cropped = tensors.copy()
   tensors_cropped["unnormalized_img"], offset = random_crop_image(tensors["unnormalized_img"], size)
+  tensors_cropped["flow"], offset = random_crop_image(tensors["flow"], size)
   tensors_cropped["label"], offset = random_crop_image(tensors["label"], size, offset)
   tensors_cropped["raw_label"] = tensors_cropped["label"]
   if "old_label" in tensors:
@@ -134,8 +135,10 @@ def resize_fixed_size(tensors, input_size):
   tensors_out = tensors.copy()
   assert input_size is not None
   img = tensors["unnormalized_img"]
+  flow = tensors["flow"]
   label = tensors["label"]
   img = resize_image(img, input_size, True)
+  flow = resize_image(flow, input_size, True)
   label = resize_image(label, input_size, False)
   if "old_label" in tensors:
     old_label = tensors["old_label"]
@@ -149,9 +152,10 @@ def resize_fixed_size(tensors, input_size):
     u1 = tensors[Constants.DT_POS]
     u1 = resize_image(u1, input_size, False)
     tensors_out[Constants.DT_POS] = u1
-    print "Shape of u1: " + `u1.get_shape()`
+#    print "Shape of u1: " + u1.get_shape()
   tensors_out["unnormalized_img"] = img
   tensors_out["label"] = label
+  tensors_out["flow"] = flow
 
   #do not change raw_label
   #TODO: this behaviour is different to previous version, check if it breaks anything
@@ -176,8 +180,10 @@ def resize_unchanged(input_size, tensors):
   tensors_out = tensors.copy()
   if input_size is not None:
     img = tensors["unnormalized_img"]
+    flow = tensors["flow"]
     label = tensors["label"]
     img.set_shape((input_size[0], input_size[1], None))
+    flow.set_shape((input_size[0], input_size[1], None))
     label.set_shape((input_size[0], input_size[1], None))
 
     def _set_shape(key, n_channels=None):

@@ -22,6 +22,7 @@ class FeedImageDataset(Dataset):
     self.use_summaries = self.config.bool("use_summaries", False)
 
     self.img_placeholder = tf.placeholder(tf.float32, shape=(None, None, n_color_channels), name="img_placeholder")
+    self.flow_placeholder = tf.placeholder(tf.float32, shape=(None, None, n_color_channels), name="flow_placeholder")
     self.label_placeholder = tf.placeholder(tf.uint8, shape=(None, None, 1), name="label_placeholder")
     self.tag_placeholder = tf.placeholder(tf.string, shape=(), name="tag_placeholder")
 
@@ -80,7 +81,7 @@ class FeedImageDataset(Dataset):
 
   def create_input_tensors_dict(self, batch_size):
     use_index_img = self.subset != "train"
-    tensors = create_tensor_dict(unnormalized_img=self.img_placeholder, label=self.label_placeholder,
+    tensors = create_tensor_dict(unnormalized_img=self.img_placeholder, flow= self.flow_placeholder, label=self.label_placeholder,
                                  tag=self.tag_placeholder, raw_label=self.label_placeholder,
                                  old_label=self.old_label_placeholder, flow_past=self.flow_into_past_placeholder,
                                  flow_future=self.flow_into_future_placeholder, use_index_img=use_index_img,
@@ -165,7 +166,7 @@ class OneshotImageDataset(FeedImageDataset):
 
   def feed_dict_for_video_frame(self, frame_idx, with_annotations, old_mask=None):
     tensors = self._get_video_data()[frame_idx].copy()
-    feed_dict = {self.img_placeholder: tensors["unnormalized_img"], self.tag_placeholder: tensors["tag"]}
+    feed_dict = {self.img_placeholder: tensors["unnormalized_img"], self.flow_placeholder:tensors["flow"], self.tag_placeholder: tensors["tag"]}
     if with_annotations:
       feed_dict[self.label_placeholder] = tensors["label"]
 

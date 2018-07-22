@@ -15,6 +15,22 @@ DAVIS_IMAGE_SIZE = (480, 854)
 DAVIS2017_IMAGE_SIZE = (480, None)
 
 
+def read_image_flow_and_annotation_list(fn, data_dir):
+  imgs = []
+  flows= []
+  ans = []
+  with open(fn) as f:
+    for l in f:
+      sp = l.split()
+      an = data_dir + sp[1]
+      im = data_dir + sp[0]
+      flow = data_dir + sp[0].replace('JPEGImages','OpticalFlow')
+      imgs.append(im)
+      ans.append(an)
+      flows.append(flow)
+  return imgs, flows, ans
+
+
 def read_image_and_annotation_list(fn, data_dir):
   imgs = []
   ans = []
@@ -68,15 +84,12 @@ class DAVISDataset(ImageDataset):
   def read_inputfile_lists(self):
     assert self.subset in ("train", "valid"), self.subset
     list_file = get_input_list_file(self.subset, self.trainsplit)
-    imgs, ans = read_image_and_annotation_list(self.data_dir + list_file, self.data_dir)
-    return imgs, ans
-
+    imgs, flows, ans = read_image_flow_and_annotation_list(self.data_dir + list_file, self.data_dir)
+    return imgs, flows, ans
 
 ###### DAVIS 2017 #####
-
 def postproc_2017_labels(labels):
   return tf.cast(tf.reduce_max(labels, axis=2, keep_dims=True) > 0, tf.uint8)
-
 
 def get_input_list_file_2017(subset):
   if subset == "train":
@@ -85,7 +98,6 @@ def get_input_list_file_2017(subset):
     return "ImageSets/2017/val.txt"
   else:
     assert False, ("invalid subset", subset)
-
 
 def read_image_and_annotation_list_2017(fn, data_dir):
   imgs = []

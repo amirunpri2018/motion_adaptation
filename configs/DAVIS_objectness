@@ -1,36 +1,24 @@
 {
-#TODO: change this!
-"davis_data_dir": "/home/nray1/ms/DAVIS/",
-
-"model": "DAVIS16_oneshot",
-"task": "oneshot",
+"model": "DAVIS_objectness",
+"davis_data_dir": "/home/eren/Data/DAVIS/",
+"task": "train",
 "dataset": "DAVIS",
 "batch_size": 1,
 "batch_size_eval": 1,
 "log_verbosity": 5,
 "gpus": [0],
 "optimizer": "adam",
+"learning_rates": "{1: 0.000001, 8: 0.0000005, 12: 0.0000001}",
+#"load_init": "models/DAVIS16/DAVIS16",
+"load_init": "models/DAVIS_objectness/DAVIS_objectness-00000001",
 "freeze_batchnorm": true,
 "save": true,
-"num_epochs": 0,
-
-"trainsplit": 0,
-
-#"load": "models/DAVIS16/DAVIS16",
-"load": "models/DAVIS_2stream/DAVIS_objectness-00000001",
-#"load": "models/DAVIS_objectness/DAVIS_objectness-00000002",
-#"load": "models/pascal/pascal",
-"n_finetune_steps": 0,
-"learning_rates": "{1: 0.000003}",
-"save_oneshot": true,
-"save_logits": true,
+"num_epochs": 30,
 
 "augmentors_train": ["gamma", "flip"],
-"resize_mode_train": "random_resize",
-
-"resize_mode_val": "",
-"augmentors_val": [],
-#"n_test_samples": 1,
+#"resize_mode_train": "random_resize",
+"resize_mode_train": "unchanged",
+"resize_mode_val": "unchanged",
 
 "network": {
   "conv0":  {"class": "Conv", "n_features": 64, "activation": "linear"},

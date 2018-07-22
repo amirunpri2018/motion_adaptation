@@ -2,6 +2,7 @@ import numpy
 import math
 import tensorflow as tf
 from collections import namedtuple
+
 TowerSetup = namedtuple("TowerSetup", ["dtype", "gpu", "is_main_train_tower", "is_training",
                                        "freeze_batchnorm", "variable_device", "use_update_ops_collection",
                                        "batch_size"])
@@ -55,7 +56,7 @@ def prepare_input(inputs):
   else:
     dims = [int(inp.get_shape()[3]) for inp in inputs]
     dim = sum(dims)
-    inp = tf.concat_v2(inputs, 3)
+    inp = tf.concat(inputs, 3)
   return inp, dim
 
 

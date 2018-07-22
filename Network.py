@@ -8,7 +8,6 @@ import NetworkOutputLayers
 from Log import log
 from Util_Network import TowerSetup
 
-
 def get_layer_class(layer_class):
   if hasattr(NetworkLayers, layer_class):
     class_ = getattr(NetworkLayers, layer_class)
@@ -22,7 +21,7 @@ def get_layer_class(layer_class):
 
 
 class Network(object):
-  def build_tower(self, network_def, x_image, y_ref, void_label, n_classes, tower_setup):
+  def build_tower(self, network_def, x_image, flow, y_ref, void_label, n_classes, tower_setup):
     use_dropout = not tower_setup.is_training
     gpu_str = "/gpu:" + str(tower_setup.gpu)
     if tower_setup.is_main_train_tower:
@@ -52,7 +51,11 @@ class Network(object):
           inputs = sum([layers[x].outputs for x in layer_def["from"]], [])
           del layer_def["from"]
         else:
-          inputs = [x_image]
+            if "_1" in name:
+              inputs = [flow]
+            else:
+              inputs = [x_image]
+
         if "concat" in layer_def:
           concat = sum([layers[x].outputs for x in layer_def["concat"]], [])
           layer_def["concat"] = concat
@@ -105,7 +108,7 @@ class Network(object):
       n_params = sum([l.n_params for l in layers.values()])
       return loss, measures, y_softmax, n, n_params, regularizers_tower, update_ops_tower, layers
 
-  def build_network(self, config, x_image, y_ref, void_label, n_classes, is_training, freeze_batchnorm):
+  def build_network(self, config, x_image, flow, y_ref, void_label, n_classes, is_training, freeze_batchnorm):
     gpus = config.int_list("gpus")
     #only use one gpu for eval
     if not is_training:
@@ -141,7 +144,7 @@ class Network(object):
 
       with tf.variable_scope(tf.get_variable_scope(), reuse=True if not first else None):
         loss, measures, y_softmax, n, n_params_tower, regularizers, update_ops_tower, layers = self.build_tower(
-          network_def, x_image_tower, y_ref_tower, void_label, n_classes, tower_setup)
+          network_def, x_image_tower, flow, y_ref_tower, void_label, n_classes, tower_setup)
 
       tower_layers.append(layers)
       tower_losses.append(loss / tf.cast(n, tower_setup.dtype))
@@ -204,7 +207,11 @@ class Network(object):
       inputs_tensors_dict = dataset.create_input_tensors_dict(self.batch_size)
       #inputs and labels are not optional
       inputs = inputs_tensors_dict["inputs"]
+      self.input_summary= tf.summary.image('img', inputs)
+      flow = inputs_tensors_dict["flow"]
+      self.flow_summary= tf.summary.image('flow', flow)
       labels = inputs_tensors_dict["labels"]
+      self.label_summary= tf.summary.image('label', labels)
       self.raw_labels = inputs_tensors_dict.get("raw_labels", None)
       self.index_imgs = inputs_tensors_dict.get("index_imgs", None)
       self.tags = inputs_tensors_dict.get("tags")
@@ -213,9 +220,10 @@ class Network(object):
       #important: first inputs_and_labels (which creates summaries) and then access summaries
       self.summaries = []
       self.summaries += dataset.summaries
+      self.summaries+= [self.input_summary, self.flow_summary, self.label_summary]
       self.losses, self.regularizers, self.loss_summed, self.y_softmax, self.measures_accumulated, self.n_imgs, \
           self.n_params, self.update_ops, self.tower_setups, self.tower_layers = self.build_network(
-            config, inputs, labels, void_label, n_classes, training, freeze_batchnorm)
+            config, inputs, flow, labels, void_label, n_classes, training, freeze_batchnorm)
 
   def get_output_layer(self):
     layers = self.tower_layers[0]

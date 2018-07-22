@@ -10,7 +10,7 @@ def forward(engine, network, data, dataset_name, save_results, save_logits):
 
 def oneshot_forward(engine, save_results, save_logits):
   if engine.dataset in ("davis", "davis17", "davis2017", "davis_video", "oxford", "youtube", "youtubeobjects",
-                        "youtubefull", "youtubeobjectsfull", "segtrackv2"):
+                        "youtubefull", "youtubeobjectsfull", "segtrackv2", "custom"):
     forwarder = OneshotForwarder(engine)
   else:
     assert False, "unknown dataset for oneshot: " + engine.dataset

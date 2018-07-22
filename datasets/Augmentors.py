@@ -151,6 +151,11 @@ class FlipAugmentor(object):
       aug_img = tf.cond(doit, lambda: img_flipped, lambda: img)
       aug_tensors["unnormalized_img"] = aug_img
 
+      flow = tensors["flow"]
+      flow_flipped = tf.image.flip_left_right(flow)
+      aug_flow = tf.cond(doit, lambda: flow_flipped, lambda: flow)
+      aug_tensors["flow"] = aug_flow
+
       if "label" in tensors:
         label = tensors["label"]
         label_flipped = tf.reverse(label, axis=[1])
@@ -228,6 +233,7 @@ class ScaleAugmentor(object):
       return offset_
 
     offset = _scale("unnormalized_img", True, offset, True)
+    _scale("flow", True, offset, True)
     _scale("label", False, offset, False)
     _scale("old_label", False, offset)
     _scale("index_img", False, offset)

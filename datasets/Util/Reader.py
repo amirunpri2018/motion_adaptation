@@ -7,11 +7,11 @@ from datasets.Util.Input import assemble_input_tensors
 from datasets.Util.Normalization import normalize
 from datasets.Util.Resize import resize
 from datasets.Util.Util import load_flow_from_flo, create_index_image, smart_shape
+import pdb
 
-
-def create_tensor_dict(unnormalized_img, label, tag, raw_label=None, old_label=None, flow_past=None, flow_future=None,
+def create_tensor_dict(unnormalized_img, flow, label, tag, raw_label=None, old_label=None, flow_past=None, flow_future=None,
                        use_index_img=False, u0=None, u1=None):
-  tensors = {"unnormalized_img": unnormalized_img, "label": label, "tag": tag}
+  tensors = {"unnormalized_img": unnormalized_img, "flow":flow, "label": label, "tag": tag}
   if raw_label is None:
     tensors["raw_label"] = label
   else:
@@ -48,6 +48,57 @@ def load_img_default(img_path):
   img.set_shape((None, None, 3))
 
   return img
+
+
+def read_images_flow_from_disk(input_queue, input_size, resize_mode, label_postproc_fn=lambda x: x, augmentors=(),
+                          label_load_fn=load_label_default, img_load_fn=load_img_default):
+  im_path = input_queue[0]
+  flow_path = input_queue[1]
+  label_path = input_queue[2]
+  img = img_load_fn(img_path=im_path)
+  flow = img_load_fn(img_path=flow_path)
+  #pdb.set_trace()
+  labels = label_load_fn(im_path, label_path)
+  label = labels['label']
+
+  label = label_postproc_fn(label)
+  label.set_shape(img.get_shape().as_list()[:-1] + [1])
+
+  old_label = u0 = u1 = None
+
+  if 'old_label' in labels.keys():
+    old_label = labels['old_label']
+    old_label.set_shape(img.get_shape().as_list()[:-1] + [1])
+  if Constants.DT_NEG in labels.keys() and Constants.DT_POS in labels.keys():
+    u0 = labels[Constants.DT_NEG]
+    u0.set_shape(img.get_shape().as_list()[:-1] + [1])
+    # Create a negative click map, where the click points are denoted as 1 and the rest of it as 0.
+    # This would majorly be used to show the clicks in summaries.
+    [neg_clicks] = tf.py_func(create_clicks_map, [labels['neg_clicks'], u0], [tf.float32], name="create_click_map")
+    neg_clicks.set_shape(img.get_shape().as_list()[:-1] + [1])
+    u0 = tf.concat([u0, neg_clicks], axis=2)
+
+    u1 = labels[Constants.DT_POS]
+    u1.set_shape(img.get_shape().as_list()[:-1] + [1])
+    [pos_clicks] = tf.py_func(create_clicks_map, [labels['pos_clicks'], u1], [tf.float32], name="create_click_map")
+    pos_clicks.set_shape(img.get_shape().as_list()[:-1] + [1])
+    u1 = tf.concat([u1, pos_clicks], axis=2)
+
+    shape = im_path.get_shape()
+    im_path = tf.string_join([im_path, tf.as_string(labels['num_clicks'])], separator=":", name="JoinPath")
+    im_path.set_shape(shape)
+
+  tensors = create_tensor_dict(unnormalized_img=img, flow=flow, label=label,
+                               old_label=old_label, u0=u0, u1=u1,
+                               tag=im_path, raw_label=label)
+
+  tensors = resize(tensors, resize_mode, input_size)
+  tensors = apply_augmentors(tensors, augmentors)
+  tensors = assemble_input_tensors(tensors)
+
+  summaries = []
+
+  return tensors, summaries
 
 
 def read_images_from_disk(input_queue, input_size, resize_mode, label_postproc_fn=lambda x: x, augmentors=(),
@@ -89,7 +140,6 @@ def read_images_from_disk(input_queue, input_size, resize_mode, label_postproc_f
   tensors = create_tensor_dict(unnormalized_img=img, label=label,
                                old_label=old_label, u0=u0, u1=u1,
                                tag=im_path, raw_label=label)
-
   tensors = resize(tensors, resize_mode, input_size)
   tensors = apply_augmentors(tensors, augmentors)
   tensors = assemble_input_tensors(tensors)

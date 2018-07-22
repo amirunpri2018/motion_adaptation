@@ -4,7 +4,7 @@ from datasets.Util.Reader import create_tensor_dict
 from datasets.FeedDataset import OneshotImageDataset
 from Log import log
 
-DEFAULT_PATH = "/data/corpora/SegTrackv2/"
+DEFAULT_PATH = "/home/gemy/Downloads/Seg/"
 SEQUENCES = ["bird_of_paradise", "birdfall", "girl", "monkeydog/1", "monkeydog/2", "parachute", "penguin/1",
              "penguin/2", "penguin/3", "penguin/4", "penguin/5", "penguin/6", "cheetah/1", "cheetah/2", "worm",
              "bmx/1", "bmx/2", "drift/1", "drift/2", "frog", "hummingbird/1", "hummingbird/2", "monkey", "soldier"]
@@ -30,17 +30,20 @@ def _load_videos(path):
     label_files = [folder + fn + ending for fn in fns]
     assert len(label_files) > 0
     img_files = [f.replace("/GroundTruth/", "/JPEGImages/").replace(seq, seq.split("/")[0]) for f in label_files]
+    flow_files = [f.replace("/JPEGImages/", "/OpticalFlow/").replace(seq, seq.split("/")[0]) for f in img_files]
     if seq.split("/")[0] in BMP_SEQUENCES:
       img_files = [f.replace(".png", ".bmp") for f in img_files]
+      flow_files = [f.replace(".png", ".bmp") for f in img_files]
     video = []
-    for img_file, label_file in zip(img_files, label_files):
+    for img_file, label_file,flow_file in zip(img_files, label_files,flow_files):
       img_val = scipy.ndimage.imread(img_file) / 255.0
       label_val = scipy.ndimage.imread(label_file) / 255
+      flow_val = scipy.ndimage.imread(flow_file) / 255
       label_val = label_val[..., :1]
       assert label_val.ndim == 3, label_val.ndim
       #label_val = numpy.expand_dims(label_val, 2)
       tag = seq.replace("/", "_") + "/" + label_file.split("/")[-1]
-      tensors = create_tensor_dict(unnormalized_img=img_val, label=label_val, tag=tag)
+      tensors = create_tensor_dict(unnormalized_img=img_val, label=label_val,flow=flow_val, tag=tag)
       video.append(tensors)
     videos.append(video)
   return tags, videos

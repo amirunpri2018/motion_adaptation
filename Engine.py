@@ -12,7 +12,8 @@ from Trainer import Trainer
 from Util import load_wider_or_deeper_mxnet_model
 from datasets.Forward import forward, oneshot_forward, online_forward
 from datasets.Loader import load_dataset
-
+import pickle
+from weights_utils import dump_weights
 
 class Engine(object):
   def __init__(self, config):
@@ -67,7 +68,10 @@ class Engine(object):
     tf.train.start_queue_runners(self.session)
     self.load_init_saver = self._create_load_init_saver()
     if not self.do_oneshot_or_online_or_offline:
-      self.try_load_weights()
+#      self.my_load_weights('models/pascal.pkl')
+#      self.my_load_weights('models/davis.pkl')
+       self.try_load_weights()
+    #dump_weights(self.session)
     #put this in again later
     #self.session.graph.finalize()
 
@@ -84,6 +88,33 @@ class Engine(object):
       return tf.train.Saver(var_list=vars_intersection)
     else:
       return None
+
+  def my_load_weights(self, f):
+    with open(f, 'rb') as output:
+        loaded_weights = pickle.load(output)#, encoding='latin1')
+
+        model_weights = {}
+        model_trainables_vars = tf.all_variables()
+        for i in range(len(model_trainables_vars)):
+            model_weights[model_trainables_vars[i].name] = model_trainables_vars[i]
+
+        for name, v in loaded_weights.items():
+            if name == 'global_step:0':
+                continue
+            print('current loaded layer ', name)
+            assign_op = model_weights[name].assign(v)
+            self.session.run(assign_op)
+            sp= name.split(':')[0].split('/')
+#            if sp[0] in ['concat1', 'res6', 'res7', 'res7', 'res8', 'res9','res10','res11', 'res12', 'res13', 'res14' ,'res15', 'res16', 'conv1', 'output']:
+#                continue
+            name= name.replace(sp[0], sp[0]+'_1')
+            if name not in model_weights.keys():
+                continue
+            print('current other stream layer ', name)
+            assign_op = model_weights[name].assign(v)
+            self.session.run(assign_op)
+    print("loading weights done")
+
 
   def try_load_weights(self):
     fn = None

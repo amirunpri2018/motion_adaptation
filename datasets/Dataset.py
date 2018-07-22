@@ -9,9 +9,9 @@ from Log import log
 from datasets.Augmentors import parse_augmentors
 from datasets.Util.Batch import create_batch_dict
 from datasets.Util.Normalization import unnormalize
-from datasets.Util.Reader import read_images_from_disk, load_label_default, load_img_default
+from datasets.Util.Reader import read_images_flow_from_disk, read_images_from_disk, load_label_default, load_img_default
 from datasets.Util.Resize import parse_resize_mode, ResizeMode
-
+import pdb
 
 class Dataset(object):
   __metaclass__ = ABCMeta
@@ -101,6 +101,7 @@ class ImageDataset(Dataset):
   def create_input_tensors_dict(self, batch_size):
     self._load_inputfile_lists()
     resize_mode, input_size = self._get_resize_params(self.subset, self.image_size, ResizeMode.Unchanged)
+    #pdb.set_trace()
     augmentors, shuffle = self._parse_augmentors_and_shuffle()
 
     inputfile_tensors = [tf.convert_to_tensor(l, dtype=tf.string) for l in self.inputfile_lists]
@@ -151,14 +152,13 @@ class ImageDataset(Dataset):
 
   # default implementation, should in many cases be overwritten
   def _read_inputfiles(self, queue, resize_mode, input_size, augmentors):
-    tensors, summaries = read_images_from_disk(queue, input_size, resize_mode, label_postproc_fn=self.label_postproc_fn,
+    tensors, summaries = read_images_flow_from_disk(queue, input_size, resize_mode, label_postproc_fn=self.label_postproc_fn,
                                                augmentors=augmentors, label_load_fn=self.label_load_fn,
                                                img_load_fn=self.img_load_fn)
     return tensors, summaries
 
   def add_clicks(self, inputs, c):
     out_imgs = None
-    # pdb.set_trace()
 
     for input in inputs:
       img = input[:,:,:3]
